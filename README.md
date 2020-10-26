@@ -1,6 +1,6 @@
 # FastAPI Learning Track
 
-![](http://img.shields.io/static/v1?link=http://fastapi.tiangolo.com&style=flat&logo=fastapi&label=FastAPI&message=RestAPI&color=39968d)
+![](http://img.shields.io/static/v1?link=http://fastapi.tiangolo.com&style=flat&logo=fastapi&label=FastAPI&message=RestAPI&color=009688)
 ![](http://img.shields.io/static/v1?link=https://www.docker.com&style=flat&logo=docker&label=Docker&message=Container&color=blue)
 
 A self learning track for mastering FastAPI.
