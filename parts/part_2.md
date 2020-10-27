@@ -104,3 +104,98 @@ tests/test_ping.py .                                                            
 
 ========================================================================= 6 passed in 0.10s =========================================================================
 ```
+
+## Path Parameters with Types
+
+It is always a good practice to specify the types of path parameters because
+
+- It helps in data validation.
+- It give the developer better editor support.
+
+Hence, we slightly modify our route:
+
+```python
+@router.get('/items/{item_id}')
+async def get_item(item_id: int):
+    return {'item': item_id}
+```
+
+Now, if we go to the url [http://localhost:8002/items/anything](http://localhost:8002/items/anything), we would get the 
+following response:
+
+```json
+{
+  "detail":[
+    {
+      "loc":["path","item_id"],
+      "msg":"value is not a valid integer",
+      "type":"type_error.integer"
+    }
+  ]
+}
+```
+
+### Modifying the Testcases
+
+Due to this slight change in path parameters, we must modify our testcases too. Now, the response would be 200 (The 
+HTTP **200 OK** success status response code indicates that the request has succeeded) if the parameter is integer and 
+only then we should check if we are being responded with the same value or not. 
+
+```python
+from string import digits
+from random import randint
+
+def is_int(val):
+    """Utility function to check if a
+    value is int or not"""
+    try:
+        num = int(val)
+    except ValueError:
+        return False
+    return True
+
+def test_get_item_int(test_backend):
+    item_id = int(digits)
+    response = test_backend.get('/items/{}'.format(item_id))
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {'item': item_id}
+    assert is_int(response_json['item'])
+
+def test_get_item_randint(test_backend):
+    random_item_id = randint(-1000, 1000)
+    response = test_backend.get('/items/{}'.format(random_item_id))
+    assert response.status_code == 200
+    response_json = response.json()
+    assert response_json == {'item': random_item_id}
+    assert is_int(response_json['item'])
+```
+
+If the value is not integer, the response would be 422, i.e, Unprocessable Entity, indicating that the server 
+understands the content type of the request entity, and the syntax of the request entity is correct, but it was unable 
+to process the contained instructions.
+
+```python
+from random import random, choices, randint
+from string import ascii_lowercase, ascii_uppercase, digits
+
+def test_get_item_random(test_backend):
+    random_item_id = random()
+    response = test_backend.get('/items/{}'.format(random_item_id))
+    assert response.status_code == 422
+
+def test_get_item_string(test_backend):
+    item_id = ascii_uppercase + digits + ascii_lowercase
+    response = test_backend.get('/items/{}'.format(item_id))
+    assert response.status_code == 422
+
+def test_get_item_random_str(test_backend):
+    random_item_id = ''.join(
+        choices(
+            ascii_uppercase + digits + ascii_lowercase,
+            k=randint(10, 100)
+        )
+    )
+    response = test_backend.get('/items/{}'.format(random_item_id))
+    assert response.status_code == 422
+```
